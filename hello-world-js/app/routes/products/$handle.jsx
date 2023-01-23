@@ -1,4 +1,4 @@
-import {useLoaderData} from '@remix-run/react';
+import {useLoaderData, useFetcher, useMatches} from '@remix-run/react';
 import {json} from 'react-router';
 import {Money, ShopPayButton} from '@shopify/storefront-kit-react';
 import ProductOptions from '~/components/ProductOptions';
@@ -67,10 +67,34 @@ export default function ProductHandle() {
             className="text-xl font-semibold mb-2"
           />
           <ShopPayButton variantIds={[selectedVariant?.id]} />
+          <ProductForm variantId={selectedVariant?.id} />
         </div>
       </div>
       {/* <PrintJson data={product} /> */}
     </section>
+  );
+}
+
+function ProductForm({variantId}) {
+  const [root] = useMatches();
+  const selectedLocale = root?.data?.selectedLocale;
+  const fetcher = useFetcher();
+
+  const lines = [{merchandiseId: variantId, quantity: 1}];
+
+  return (
+    <fetcher.Form action="/cart" method="post">
+      <input type="hidden" name="cartAction" value={'ADD_TO_CART'} />
+      <input
+        type="hidden"
+        name="countryCode"
+        value={selectedLocale?.country ?? 'US'}
+      />
+      <input type="hidden" name="lines" value={JSON.stringify(lines)} />
+      <button className="bg-black text-white px-4 py-2 w-full rounded-md">
+        Add to Bag
+      </button>
+    </fetcher.Form>
   );
 }
 
