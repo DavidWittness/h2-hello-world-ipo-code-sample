@@ -69,7 +69,7 @@ export default function ProductHandle() {
           <ShopPayButton variantIds={[selectedVariant?.id]} />
         </div>
       </div>
-      <PrintJson data={product} />
+      {/* <PrintJson data={product} /> */}
     </section>
   );
 }
