@@ -1,4 +1,4 @@
-import { defer } from "@shopify/remix-oxygen";
+import {defer} from '@shopify/remix-oxygen';
 import {
   Links,
   Meta,
@@ -6,34 +6,43 @@ import {
   Scripts,
   ScrollRestoration,
   useLoaderData,
-} from "@remix-run/react";
+} from '@remix-run/react';
 
-import { Layout } from "~/components";
-import styles from "./styles/app.css";
-import favicon from "../public/favicon.svg";
+import {ShopifyProvider} from '@shopify/storefront-kit-react';
+
+import {Layout} from '~/components';
+import styles from './styles/app.css';
+import favicon from '../public/favicon.svg';
+
+const shopifyConfig = {
+  storefrontToken: '3b580e70970c4528da70c98e097c2fa0',
+  storeDomain: 'https://hydrogen-preview.myshopify.com',
+  storefrontApiVersion: '2023-01',
+  locale: 'en',
+};
 
 export const links = () => {
   return [
-    { rel: "stylesheet", href: styles },
+    {rel: 'stylesheet', href: styles},
     {
-      rel: "preconnect",
-      href: "https://cdn.shopify.com",
+      rel: 'preconnect',
+      href: 'https://cdn.shopify.com',
     },
     {
-      rel: "preconnect",
-      href: "https://shop.app",
+      rel: 'preconnect',
+      href: 'https://shop.app',
     },
-    { rel: "icon", type: "image/svg+xml", href: favicon },
+    {rel: 'icon', type: 'image/svg+xml', href: favicon},
   ];
 };
 
 export const meta = (data) => ({
-  charset: "utf-8",
-  viewport: "width=device-width,initial-scale=1",
+  charset: 'utf-8',
+  viewport: 'width=device-width,initial-scale=1',
 });
 
-export async function loader({ context, request }) {
-  const cartId = await context.session.get("cartId");
+export async function loader({context, request}) {
+  const cartId = await context.session.get('cartId');
 
   const [cart, layout] = await Promise.all([
     cartId
@@ -64,23 +73,24 @@ export async function loader({ context, request }) {
 
 export default function App() {
   const data = useLoaderData();
-
-  const { name, description } = data.layout.shop;
+  const {name, description} = data.layout.shop;
 
   return (
-    <html lang="en">
-      <head>
-        <Meta />
-        <Links />
-      </head>
-      <body>
-        <Layout description={description} title={name}>
-          <Outlet />
-        </Layout>
-        <ScrollRestoration />
-        <Scripts />
-      </body>
-    </html>
+    <ShopifyProvider shopifyConfig={shopifyConfig}>
+      <html lang="en">
+        <head>
+          <Meta />
+          <Links />
+        </head>
+        <body>
+          <Layout description={description} title={name}>
+            <Outlet />
+          </Layout>
+          <ScrollRestoration />
+          <Scripts />
+        </body>
+      </html>
+    </ShopifyProvider>
   );
 }
 
