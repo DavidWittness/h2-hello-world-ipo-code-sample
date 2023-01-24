@@ -71,10 +71,6 @@ function CartHeader({cart, openDrawer}) {
 }
 
 function CartDrawer({cart, close}) {
-  console.log('cart', cart);
-
-  const isEmpty = !cart || !cart?.edges?.length > 0;
-
   if (cart?.totalQuantity > 0)
     return (
       <div className="flex flex-col space-y-7 justify-between items-center md:py-8 md:px-12 px-4 py-6 h-screen">
