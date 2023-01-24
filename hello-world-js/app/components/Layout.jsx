@@ -1,11 +1,26 @@
-import {Link, Await, useMatches} from '@remix-run/react';
-import {Suspense} from 'react';
+import {Await, useMatches, useFetchers} from '@remix-run/react';
+import {Suspense, useEffect} from 'react';
 import {Drawer, useDrawer} from '~/components/Drawer';
 import {CartLineItems, CartActions, CartSummary} from '~/components/Cart';
 
 export function Layout({children, title}) {
   const {isOpen, openDrawer, closeDrawer} = useDrawer();
   const [root] = useMatches();
+  const fetchers = useFetchers();
+
+  // grab all the fetchers that are adding to cart
+  const addToCartFetchers = [];
+  for (const fetcher of fetchers) {
+    if (fetcher?.submission?.formData?.get('cartAction') === 'ADD_TO_CART') {
+      addToCartFetchers.push(fetcher);
+    }
+  }
+
+  // when the fetchers array changes, open the drawer
+  useEffect(() => {
+    if (isOpen || addToCartFetchers.length === 0) return;
+    openDrawer();
+  }, [addToCartFetchers]);
 
   return (
     <div className="flex flex-col min-h-screen antialiased bg-neutral-50">
@@ -79,7 +94,7 @@ function CartDrawer({cart, close}) {
             <CartLineItems linesObj={cart.lines} />
           </div>
         </div>
-        <div className="w-full md:px-12 px-4 py-6 space-y-6 border border-1 border-gray-200">
+        <div className="w-full md:px-12 px-4 py-6 space-y-6 border border-1 border-gray-00">
           <CartSummary cost={cart.cost} />
           <CartActions checkoutUrl={cart.checkoutUrl} />
         </div>
