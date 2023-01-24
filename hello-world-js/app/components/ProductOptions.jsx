@@ -52,7 +52,7 @@ export default function ProductOptions({options, selectedVariant}) {
 
             <div className="flex flex-wrap items-baseline gap-4">
               {option.values.map((value) => {
-                const linkParams = new URLSearchParams(currentSearchParams);
+                const linkParams = new URLSearchParams(searchParams);
                 const isSelected = currentOptionVal === value;
                 linkParams.set(option.name, value);
                 return (
