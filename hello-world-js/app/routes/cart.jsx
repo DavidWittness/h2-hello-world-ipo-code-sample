@@ -1,6 +1,7 @@
 import {Link, useFetcher, useMatches} from '@remix-run/react';
 import {json} from '@shopify/remix-oxygen';
 import {flattenConnection, Image} from '@shopify/storefront-kit-react';
+import {CartLineItems, CartActions, CartSummary} from '~/components/Cart';
 
 export async function action({request, context}) {
   const {session, storefront} = context;
@@ -79,86 +80,32 @@ export default function Cart() {
 
   const cart = root.data?.cart;
 
-  if (!cart) {
+  if (cart?.totalQuantity > 0)
     return (
       <div>
-        <h1>Cart</h1>
-        <p>Loading...</p>
+        <CartLineItems linesObj={cart.lines} />
+        <div className="mt-6">
+          <CartSummary cost={cart.cost} />
+        </div>
+
+        <div className="mt-6">
+          <CartActions checkoutUrl={cart.checkoutUrl} />
+        </div>
+        {/* <pre>{JSON.stringify(lines, null, 2)}</pre> */}
       </div>
     );
-  }
-
-  const lines = flattenConnection(cart.lines);
 
   return (
-    <div>
-      <h1>Cart</h1>
-      <div>
-        {lines.map((line) => {
-          return <LineItem key={line.id} lineItem={line} />;
-        })}
-      </div>
-      <CartCheckoutActions checkoutUrl={cart.checkoutUrl} />
-      {/* <pre>{JSON.stringify(lines, null, 2)}</pre> */}
-    </div>
-  );
-}
-
-function LineItem({lineItem}) {
-  const {merchandise, quantity} = lineItem;
-
-  return (
-    <div className="flex gap-4 items-center py-8">
+    <div className="flex flex-col space-y-7 justify-center items-center md:py-8 md:px-12 px-4 py-6 h-screen">
+      <h2 className="whitespace-pre-wrap max-w-prose font-bold text-4xl">
+        Your cart is empty
+      </h2>
       <Link
-        to={`/products/${merchandise.product.handle}`}
-        className="flex-shrink-0"
+        to="/"
+        className="inline-block rounded-sm font-medium text-center py-3 px-6 max-w-xl leading-none bg-black text-white w-full"
       >
-        <Image data={merchandise.image} width={110} height={110} />
+        Continue shopping
       </Link>
-      <div className="">
-        <Link
-          to={`/products/${merchandise.product.handle}`}
-          className="no-underline hover:underline"
-        >
-          {merchandise.product.title}
-        </Link>
-        <div className="text-gray-800 text-sm">{merchandise.title}</div>
-        <div className="text-gray-800 text-sm">Qty: {quantity}</div>
-        <ItemRemoveButton lineIds={[lineItem.id]} />
-      </div>
-    </div>
-  );
-}
-
-function ItemRemoveButton({lineIds}) {
-  const fetcher = useFetcher();
-
-  return (
-    <fetcher.Form action="/cart" method="post">
-      <input type="hidden" name="cartAction" value="REMOVE_FROM_CART" />
-      <input type="hidden" name="linesIds" value={JSON.stringify(lineIds)} />
-      <button
-        className="bg-white border-black text-black hover:text-white hover:bg-black inline-block rounded-sm font-small text-center py-2 px-4 my-2 max-w-xl leading-none border"
-        type="submit"
-      >
-        <span>Remove</span>
-        {/* <IconRemove aria-hidden="true" /> */}
-      </button>
-    </fetcher.Form>
-  );
-}
-
-function CartCheckoutActions({checkoutUrl}) {
-  if (!checkoutUrl) return null;
-
-  return (
-    <div className="flex flex-col mt-2">
-      <a
-        href={checkoutUrl}
-        className="bg-black text-white px-4 py-2 w-full rounded-md text-center"
-      >
-        Continue to Checkout
-      </a>
     </div>
   );
 }
