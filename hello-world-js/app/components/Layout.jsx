@@ -76,7 +76,7 @@ function CartDrawer({cart, close}) {
       <div className="flex flex-col space-y-7 justify-between items-center md:py-8 md:px-12 px-4 py-6 h-screen">
         <CartLineItems linesObj={cart.lines} />
 
-        <div>
+        <div className="w-full">
           <div className="mt-6">
             <CartSummary cost={cart.cost} />
           </div>

@@ -91,7 +91,7 @@ function ProductForm({variantId}) {
         value={selectedLocale?.country ?? 'US'}
       />
       <input type="hidden" name="lines" value={JSON.stringify(lines)} />
-      <button className="bg-black text-white px-4 py-2 w-full rounded-md">
+      <button className="bg-black text-white px-6 py-3 w-full rounded-md text-center font-medium">
         Add to Bag
       </button>
     </fetcher.Form>

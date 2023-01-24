@@ -5,7 +5,7 @@ import {flattenConnection, Image} from '@shopify/storefront-kit-react';
 export function CartLineItems({linesObj}) {
   const lines = flattenConnection(linesObj);
   return (
-    <div>
+    <div className="space-y-8">
       {lines.map((line) => {
         return <LineItem key={line.id} lineItem={line} />;
       })}
@@ -17,14 +17,14 @@ function LineItem({lineItem}) {
   const {merchandise, quantity} = lineItem;
 
   return (
-    <div className="flex gap-4 items-center py-8">
+    <div className="flex gap-4">
       <Link
         to={`/products/${merchandise.product.handle}`}
         className="flex-shrink-0"
       >
         <Image data={merchandise.image} width={110} height={110} />
       </Link>
-      <div className="">
+      <div className="flex-1">
         <Link
           to={`/products/${merchandise.product.handle}`}
           className="no-underline hover:underline"
@@ -35,6 +35,7 @@ function LineItem({lineItem}) {
         <div className="text-gray-800 text-sm">Qty: {quantity}</div>
         <ItemRemoveButton lineIds={[lineItem.id]} />
       </div>
+      <Money data={lineItem.cost.totalAmount} />
     </div>
   );
 }
@@ -71,7 +72,7 @@ export function CartActions({checkoutUrl}) {
     <div className="flex flex-col mt-2">
       <a
         href={checkoutUrl}
-        className="bg-black text-white px-4 py-2 w-full rounded-md text-center"
+        className="bg-black text-white px-6 py-3 w-full rounded-md text-center font-medium"
       >
         Continue to Checkout
       </a>
