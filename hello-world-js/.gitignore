@@ -7,4 +7,4 @@ node_modules
 /.mf
 
 # Generated files
-./app/styles/app.css
+/app/styles/app.css

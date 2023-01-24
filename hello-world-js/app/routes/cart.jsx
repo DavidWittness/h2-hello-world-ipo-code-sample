@@ -1,6 +1,5 @@
-import {Link, useFetcher, useMatches} from '@remix-run/react';
+import {Link, useMatches} from '@remix-run/react';
 import {json} from '@shopify/remix-oxygen';
-import {flattenConnection, Image} from '@shopify/storefront-kit-react';
 import {CartLineItems, CartActions, CartSummary} from '~/components/Cart';
 
 export async function action({request, context}) {
