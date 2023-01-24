@@ -28,15 +28,15 @@ function Drawer({open, onClose, children}) {
             <div className="fixed inset-y-0 right-0 flex max-w-full pl-10">
               <Transition.Child
                 as={Fragment}
-                enter="transform transition ease-in-out duration-500 sm:duration-700"
+                enter="transform transition ease-in-out duration-500"
                 enterFrom="translate-x-full"
                 enterTo="translate-x-0"
-                leave="transform transition ease-in-out duration-500 sm:duration-700"
+                leave="transform transition ease-in-out duration-500"
                 leaveFrom="translate-x-0"
                 leaveTo="translate-x-full"
               >
                 <Dialog.Panel className="max-w-lg transform text-left align-middle shadow-xl transition-all antialiased bg-neutral-50 flex flex-col">
-                  <header className="sticky top-0 flex items-center justify-between px-4 h-24 sm:px-8 md:px-12">
+                  <header className="sticky top-0 flex items-center justify-between px-4 h-24 sm:px-8 md:px-12 flex-0">
                     <h2
                       id="cart-contents"
                       className="whitespace-pre-wrap max-w-prose font-bold text-lg"

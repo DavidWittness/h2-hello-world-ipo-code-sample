@@ -73,19 +73,17 @@ function CartHeader({cart, openDrawer}) {
 function CartDrawer({cart, close}) {
   if (cart?.totalQuantity > 0)
     return (
-      <div className="flex flex-col space-y-7 justify-between items-center md:py-8 md:px-12 px-4 py-6 h-screen">
-        <CartLineItems linesObj={cart.lines} />
-
-        <div className="w-full">
-          <div className="mt-6">
-            <CartSummary cost={cart.cost} />
-          </div>
-
-          <div className="mt-6">
-            <CartActions checkoutUrl={cart.checkoutUrl} />
+      <>
+        <div className="flex-1 overflow-y-auto">
+          <div className="flex flex-col space-y-7 justify-between items-center md:py-8 md:px-12 px-4 py-6">
+            <CartLineItems linesObj={cart.lines} />
           </div>
         </div>
-      </div>
+        <div className="w-full md:px-12 px-4 py-6 space-y-6 border border-1 border-gray-200">
+          <CartSummary cost={cart.cost} />
+          <CartActions checkoutUrl={cart.checkoutUrl} />
+        </div>
+      </>
     );
 
   return (
