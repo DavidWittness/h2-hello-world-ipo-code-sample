@@ -1,5 +1,5 @@
-import {Await, useMatches, useFetchers} from '@remix-run/react';
-import {Suspense, useEffect} from 'react';
+import {useMatches, useFetchers} from '@remix-run/react';
+import {useEffect} from 'react';
 import {Drawer, useDrawer} from '~/components/Drawer';
 import {CartLineItems, CartActions, CartSummary} from '~/components/Cart';
 
@@ -7,6 +7,8 @@ export function Layout({children, title}) {
   const {isOpen, openDrawer, closeDrawer} = useDrawer();
   const [root] = useMatches();
   const fetchers = useFetchers();
+
+  const cart = root.data?.cart;
 
   // grab all the fetchers that are adding to cart
   const addToCartFetchers = [];
@@ -16,7 +18,7 @@ export function Layout({children, title}) {
     }
   }
 
-  // when the fetchers array changes, open the drawer
+  // when the fetchers array changes, open the drawer if there is an add to cart action
   useEffect(() => {
     if (isOpen || addToCartFetchers.length === 0) return;
     openDrawer();
@@ -32,11 +34,7 @@ export function Layout({children, title}) {
           <a className="font-bold" href="/">
             {title}
           </a>
-          <Suspense>
-            <Await resolve={root.data?.cart}>
-              {(cart) => <CartHeader openDrawer={openDrawer} cart={cart} />}
-            </Await>
-          </Suspense>
+          <CartHeader openDrawer={openDrawer} cart={cart} />
         </div>
       </header>
 
@@ -48,11 +46,7 @@ export function Layout({children, title}) {
         {children}
       </main>
       <Drawer open={isOpen} onClose={closeDrawer}>
-        <Suspense fallback={<p>Loading...</p>}>
-          <Await resolve={root.data?.cart}>
-            {(cart) => <CartDrawer cart={cart} close={closeDrawer} />}
-          </Await>
-        </Suspense>
+        <CartDrawer cart={cart} close={closeDrawer} />
       </Drawer>
     </div>
   );

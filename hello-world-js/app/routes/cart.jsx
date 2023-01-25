@@ -139,7 +139,7 @@ export async function cartAdd({cartId, lines, storefront}) {
 }
 
 /**
- * Create a cart with line(s) mutation
+ * Update a cart with lines to remove mutation
  * @param cartId the current cart id
  * @param lineIds [ID!]! an array of cart line ids to remove
  * @see https://shopify.dev/api/storefront/2022-07/mutations/cartlinesremove
