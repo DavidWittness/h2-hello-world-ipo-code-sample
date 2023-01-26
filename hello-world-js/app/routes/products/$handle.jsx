@@ -13,14 +13,12 @@ export const loader = async ({params, context, request}) => {
     selectedOptions.push({name, value});
   });
 
-  const data = await context.storefront.query(PRODUCT_QUERY, {
+  const {product} = await context.storefront.query(PRODUCT_QUERY, {
     variables: {
       handle,
       selectedOptions,
     },
   });
-
-  const {product} = data;
 
   if (!product?.id) {
     throw new Response(null, {status: 404});
@@ -38,7 +36,6 @@ export const loader = async ({params, context, request}) => {
 
 export default function ProductHandle() {
   const {product, selectedVariant} = useLoaderData();
-
   const orderable = selectedVariant?.availableForSale || false;
 
   return (
@@ -73,7 +70,7 @@ export default function ProductHandle() {
                 variantIds={[selectedVariant?.id]}
                 width={'400px'}
               />
-              <ProductForm variantId={selectedVariant?.id} />
+              {/* TODO product form */}
             </div>
           )}
           <div
