@@ -52,7 +52,7 @@ export default function ProductOptions({options, selectedVariant}) {
 
             <div className="flex flex-wrap items-baseline gap-4">
               {option.values.map((value) => {
-                const linkParams = new URLSearchParams(currentSearchParams);
+                const linkParams = new URLSearchParams(searchParams);
                 const isSelected = currentOptionVal === value;
                 linkParams.set(option.name, value);
                 return (
@@ -60,6 +60,7 @@ export default function ProductOptions({options, selectedVariant}) {
                     key={value}
                     to={`${pathname}?${linkParams.toString()}`}
                     preventScrollReset
+                    replace
                     className={`leading-none py-1 border-b-[1.5px] cursor-pointer transition-all duration-200 ${
                       isSelected ? 'border-gray-500' : 'border-neutral-50'
                     }`}
