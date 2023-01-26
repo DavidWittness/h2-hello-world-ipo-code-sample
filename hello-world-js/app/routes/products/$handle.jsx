@@ -63,8 +63,19 @@ export default function ProductHandle() {
             data={selectedVariant.price}
             className="text-xl font-semibold mb-2"
           />
-          {orderable && <ShopPayButton variantIds={[selectedVariant?.id]} />}
-          {orderable && <ProductForm variantId={selectedVariant?.id} />}
+          {orderable && (
+            <div className="space-y-2">
+              <ShopPayButton
+                variantIds={[selectedVariant?.id]}
+                width={'400px'}
+              />
+              <ProductForm variantId={selectedVariant?.id} />
+            </div>
+          )}
+          <div
+            className="prose border-t border-gray-200 pt-6 text-black text-md"
+            dangerouslySetInnerHTML={{__html: product.descriptionHtml}}
+          ></div>
         </div>
       </div>
       {/* <PrintJson data={product} /> */}
@@ -148,7 +159,7 @@ function ProductForm({variantId}) {
         value={selectedLocale?.country ?? 'US'}
       />
       <input type="hidden" name="lines" value={JSON.stringify(lines)} />
-      <button className="bg-black text-white px-6 py-3 w-full rounded-md text-center font-medium">
+      <button className="bg-black text-white px-6 py-3 w-full rounded-md text-center font-medium max-w-[400px]">
         Add to Bag
       </button>
     </fetcher.Form>
