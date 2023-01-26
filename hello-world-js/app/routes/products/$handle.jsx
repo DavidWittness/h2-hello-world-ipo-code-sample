@@ -70,7 +70,7 @@ export default function ProductHandle() {
                 variantIds={[selectedVariant?.id]}
                 width={'400px'}
               />
-              {/* TODO product form */}
+              <ProductForm variantId={selectedVariant?.id} />
             </div>
           )}
           <div

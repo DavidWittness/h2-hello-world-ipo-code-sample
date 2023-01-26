@@ -1,5 +1,5 @@
 import {Link} from '@remix-run/react';
-import {Image, Money} from '@shopify/hydrogen-react';
+import {Image, Money} from '@shopify/storefront-kit-react';
 
 export default function ProductCard({product}) {
   const {priceV2: price, compareAtPriceV2: compareAtPrice} =
