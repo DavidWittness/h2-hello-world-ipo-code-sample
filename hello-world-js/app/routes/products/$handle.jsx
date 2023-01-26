@@ -1,4 +1,4 @@
-import {useLoaderData} from '@remix-run/react';
+import {useLoaderData, useFetcher, useMatches} from '@remix-run/react';
 import {json} from 'react-router';
 import {Money, ShopPayButton, MediaFile} from '@shopify/storefront-kit-react';
 import ProductOptions from '~/components/ProductOptions';
@@ -64,10 +64,7 @@ export default function ProductHandle() {
             className="text-xl font-semibold mb-2"
           />
           {orderable && <ShopPayButton variantIds={[selectedVariant?.id]} />}
-          <div
-            className="prose border-t border-gray-200 pt-6 text-black text-md"
-            dangerouslySetInnerHTML={{__html: product.descriptionHtml}}
-          ></div>
+          {orderable && <ProductForm variantId={selectedVariant?.id} />}
         </div>
       </div>
       {/* <PrintJson data={product} /> */}
@@ -132,6 +129,29 @@ function ProductGallery({media}) {
         );
       })}
     </div>
+  );
+}
+
+function ProductForm({variantId}) {
+  const [root] = useMatches();
+  const selectedLocale = root?.data?.selectedLocale;
+  const fetcher = useFetcher();
+
+  const lines = [{merchandiseId: variantId, quantity: 1}];
+
+  return (
+    <fetcher.Form action="/cart" method="post">
+      <input type="hidden" name="cartAction" value={'ADD_TO_CART'} />
+      <input
+        type="hidden"
+        name="countryCode"
+        value={selectedLocale?.country ?? 'US'}
+      />
+      <input type="hidden" name="lines" value={JSON.stringify(lines)} />
+      <button className="bg-black text-white px-6 py-3 w-full rounded-md text-center font-medium">
+        Add to Bag
+      </button>
+    </fetcher.Form>
   );
 }
 

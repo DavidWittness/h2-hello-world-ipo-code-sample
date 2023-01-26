@@ -51,10 +51,10 @@ export async function loader({context, request}) {
             variables: {
               cartId,
               /**
-      Country and language properties are automatically injected
-      into all queries. Passing them is unnecessary unless you
-      want to override them from the following default:
-      */
+              Country and language properties are automatically injected
+              into all queries. Passing them is unnecessary unless you
+              want to override them from the following default:
+              */
               country: context.storefront.i18n.country,
               language: context.storefront.i18n.language,
             },
