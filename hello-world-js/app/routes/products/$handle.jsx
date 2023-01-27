@@ -1,6 +1,6 @@
 import {useLoaderData, useFetcher, useMatches} from '@remix-run/react';
 import {json} from 'react-router';
-import {Money, ShopPayButton, MediaFile} from '@shopify/storefront-kit-react';
+import {Money, ShopPayButton, MediaFile} from '@shopify/hydrogen';
 import ProductOptions from '~/components/ProductOptions';
 
 export const loader = async ({params, context, request}) => {

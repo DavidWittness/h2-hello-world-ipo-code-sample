@@ -1,5 +1,5 @@
 import {useLoaderData, Link} from '@remix-run/react';
-import {Image} from '@shopify/storefront-kit-react';
+import {Image} from '@shopify/hydrogen';
 
 export async function loader({context}) {
   return await context.storefront.query(COLLECTIONS_QUERY);
