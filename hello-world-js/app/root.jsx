@@ -8,7 +8,7 @@ import {
   useLoaderData,
 } from '@remix-run/react';
 
-import {ShopifyProvider} from '@shopify/storefront-kit-react';
+import {ShopifyProvider} from '@shopify/hydrogen';
 
 import {Layout} from '~/components';
 import styles from './styles/app.css';
