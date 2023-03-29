@@ -1,6 +1,6 @@
-import {useLoaderData, useFetcher, useMatches} from '@remix-run/react';
+import {useFetcher, useLoaderData, useMatches} from '@remix-run/react';
+import {MediaFile, Money, ShopPayButton} from '@shopify/hydrogen-react';
 import {json} from 'react-router';
-import {Money, ShopPayButton, MediaFile} from '@shopify/storefront-kit-react';
 import ProductOptions from '~/components/ProductOptions';
 
 export const loader = async ({params, context, request}) => {
@@ -12,6 +12,8 @@ export const loader = async ({params, context, request}) => {
   searchParams.forEach((value, name) => {
     selectedOptions.push({name, value});
   });
+
+  const storeDomain = context.storefront.getShopifyDomain();
 
   const {product} = await context.storefront.query(PRODUCT_QUERY, {
     variables: {
@@ -31,11 +33,12 @@ export const loader = async ({params, context, request}) => {
   return json({
     product,
     selectedVariant,
+    storeDomain,
   });
 };
 
 export default function ProductHandle() {
-  const {product, selectedVariant} = useLoaderData();
+  const {product, selectedVariant, storeDomain} = useLoaderData();
   const orderable = selectedVariant?.availableForSale || false;
 
   return (
@@ -61,26 +64,50 @@ export default function ProductHandle() {
           />
           <Money
             withoutTrailingZeros
-            data={selectedVariant.priceV2}
+            data={selectedVariant.price}
             className="text-xl font-semibold mb-2"
           />
           {orderable && (
             <div className="space-y-2">
               <ShopPayButton
+                storeDomain={storeDomain}
                 variantIds={[selectedVariant?.id]}
                 width={'400px'}
               />
               <ProductForm variantId={selectedVariant?.id} />
             </div>
           )}
+
           <div
             className="prose border-t border-gray-200 pt-6 text-black text-md"
             dangerouslySetInnerHTML={{__html: product.descriptionHtml}}
-          ></div>
+          />
         </div>
       </div>
-      {/* <PrintJson data={product} /> */}
     </section>
+  );
+}
+
+function ProductForm({variantId}) {
+  const [root] = useMatches();
+  const selectedLocale = root?.data?.selectedLocale;
+  const fetcher = useFetcher();
+
+  const lines = [{merchandiseId: variantId, quantity: 1}];
+
+  return (
+    <fetcher.Form action="/cart" method="post">
+      <input type="hidden" name="cartAction" value={'ADD_TO_CART'} />
+      <input
+        type="hidden"
+        name="countryCode"
+        value={selectedLocale?.country ?? 'US'}
+      />
+      <input type="hidden" name="lines" value={JSON.stringify(lines)} />
+      <button className="bg-black text-white px-6 py-3 w-full rounded-md text-center font-medium max-w-[400px]">
+        Add to Bag
+      </button>
+    </fetcher.Form>
   );
 }
 
@@ -109,6 +136,7 @@ function ProductGallery({media}) {
             ar: true,
             loading: 'eager',
             disableZoom: true,
+            style: {height: '100%', margin: '0 auto'},
           };
         }
 
@@ -124,17 +152,18 @@ function ProductGallery({media}) {
         return (
           <div
             className={`${
-              i % 3 === 0 ? 'md:col-span-2' : 'md:col-span-1'
+              i === media.length - 1 && i % 3 === 1
+                ? 'md:col-span-2'
+                : i % 3 === 0
+                ? 'md:col-span-2'
+                : 'md:col-span-1'
             } snap-center card-image bg-white aspect-square md:w-full w-[80vw] shadow-sm rounded`}
-            key={data.image.id}
+            key={data.id || data.image.id}
           >
             <MediaFile
-              tabIndex="0"
+              tabIndex={0}
               className={`w-full h-full aspect-square object-cover`}
               data={data}
-              options={{
-                crop: 'center',
-              }}
               {...extraProps}
             />
           </div>
@@ -144,37 +173,6 @@ function ProductGallery({media}) {
   );
 }
 
-function ProductForm({variantId}) {
-  const [root] = useMatches();
-  const selectedLocale = root?.data?.selectedLocale;
-  const fetcher = useFetcher();
-
-  const lines = [{merchandiseId: variantId, quantity: 1}];
-
-  return (
-    <fetcher.Form action="/cart" method="post">
-      <input type="hidden" name="cartAction" value={'ADD_TO_CART'} />
-      <input
-        type="hidden"
-        name="countryCode"
-        value={selectedLocale?.country ?? 'US'}
-      />
-      <input type="hidden" name="lines" value={JSON.stringify(lines)} />
-      <button className="bg-black text-white px-6 py-3 w-full rounded-md text-center font-medium max-w-[400px]">
-        Add to Bag
-      </button>
-    </fetcher.Form>
-  );
-}
-
-function PrintJson({data}) {
-  return (
-    <details>
-      <summary>Product JSON</summary>
-      <pre>{JSON.stringify(data, null, 2)}</pre>
-    </details>
-  );
-}
 const PRODUCT_QUERY = `#graphql
   query product($handle: String!, $selectedOptions: [SelectedOptionInput!]!) {
     product(handle: $handle) {
@@ -193,6 +191,14 @@ const PRODUCT_QUERY = `#graphql
               altText
               width
               height
+            }
+          }
+          ... on Model3d {
+            id
+            mediaContentType
+            sources {
+              mimeType
+              url
             }
           }
         }
@@ -215,7 +221,7 @@ const PRODUCT_QUERY = `#graphql
           width
           height
         }
-        priceV2 {
+        price {
           amount
           currencyCode
         }
@@ -239,7 +245,7 @@ const PRODUCT_QUERY = `#graphql
           id
           title
           availableForSale
-          priceV2 {
+          price {
             currencyCode
             amount
           }

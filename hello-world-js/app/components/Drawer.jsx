@@ -45,7 +45,7 @@ function Drawer({open, onClose, children}) {
                     </h2>
                     <button
                       type="button"
-                      className="p-4 -m-4 transition text-primary hover:text-primary/50"
+                      className="p-4 my-4 transition text-primary hover:text-primary/50"
                       onClick={onClose}
                     >
                       <IconClose aria-label="Close panel" />

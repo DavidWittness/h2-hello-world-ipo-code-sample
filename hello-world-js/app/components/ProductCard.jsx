@@ -1,10 +1,8 @@
 import {Link} from '@remix-run/react';
-import {Image, Money} from '@shopify/storefront-kit-react';
+import {Image, Money} from '@shopify/hydrogen';
 
 export default function ProductCard({product}) {
-  const {priceV2: price, compareAtPriceV2: compareAtPrice} =
-    product.variants?.nodes[0] || {};
-
+  const {price, compareAtPrice} = product.variants?.nodes[0] || {};
   const isDiscounted = compareAtPrice?.amount > price?.amount;
 
   return (
@@ -16,11 +14,7 @@ export default function ProductCard({product}) {
               Sale
             </label>
           )}
-          <Image
-            className="aspect-[4/5]"
-            data={product.variants.nodes[0].image}
-            alt="Alt Tag"
-          />
+          <Image data={product.variants.nodes[0].image} alt={product.title} />
         </div>
         <div className="grid gap-1">
           <h3 className="max-w-prose text-copy w-full overflow-hidden whitespace-nowrap text-ellipsis ">

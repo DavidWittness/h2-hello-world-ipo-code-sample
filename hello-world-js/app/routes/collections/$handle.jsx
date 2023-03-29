@@ -1,12 +1,37 @@
 import {useLoaderData} from '@remix-run/react';
-import ProductCard from '../../components/ProductCard';
+import {json} from '@shopify/remix-oxygen';
+import ProductGrid from '../../components/ProductGrid';
 
-export async function loader({params, context}) {
+const seo = ({data}) => ({
+  title: data?.collection?.title,
+  description: data?.collection?.description,
+});
+
+export const handle = {
+  seo,
+};
+
+export async function loader({params, context, request}) {
   const {handle} = params;
-  return await context.storefront.query(COLLECTION_QUERY, {
+  const searchParams = new URL(request.url).searchParams;
+  const cursor = searchParams.get('cursor');
+
+  const {collection} = await context.storefront.query(COLLECTION_QUERY, {
     variables: {
-      handle: handle,
+      handle,
+      cursor,
     },
+  });
+
+  // Handle 404s
+  if (!collection) {
+    throw new Response(null, {status: 404});
+  }
+
+  // json is a Remix utility for creating application/json responses
+  // https://remix.run/docs/en/v1/utils/json
+  return json({
+    collection,
   });
 }
 
@@ -36,24 +61,26 @@ export default function Collection() {
           </div>
         )}
       </header>
-      <section className="w-full gap-4 md:gap-8 grid">
-        <div className="grid-flow-row grid gap-2 gap-y-6 md:gap-4 lg:gap-6 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          {collection.products.nodes.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
-      </section>
+      <ProductGrid
+        collection={collection}
+        url={`/collections/${collection.handle}`}
+      />
     </>
   );
 }
 
 const COLLECTION_QUERY = `#graphql
-  query CollectionDetails($handle: String!) {
+  query CollectionDetails($handle: String!, $cursor: String) {
     collection(handle: $handle) {
       id
       title
       description
-      products(first: 8) {
+      handle
+      products(first: 4, after: $cursor) {
+        pageInfo {
+          hasNextPage
+          endCursor
+        }
         nodes {
           id
           title
@@ -68,11 +95,11 @@ const COLLECTION_QUERY = `#graphql
                 width
                 height
               }
-              priceV2 {
+              price {
                 amount
                 currencyCode
               }
-              compareAtPriceV2 {
+              compareAtPrice {
                 amount
                 currencyCode
               }
