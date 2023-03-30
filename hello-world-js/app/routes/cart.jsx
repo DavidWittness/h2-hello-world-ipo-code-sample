@@ -1,6 +1,26 @@
-import {Link, useMatches} from '@remix-run/react';
+import {Link, useLoaderData} from '@remix-run/react';
 import {json} from '@shopify/remix-oxygen';
-import {CartLineItems, CartActions, CartSummary} from '~/components/Cart';
+import {CartActions, CartLineItems, CartSummary} from '~/components/Cart';
+import {CART_QUERY} from '~/queries/cart';
+
+export async function loader({context}) {
+  const cartId = await context.session.get('cartId');
+
+  const cart = cartId
+    ? (
+        await context.storefront.query(CART_QUERY, {
+          variables: {
+            cartId,
+            country: context.storefront.i18n.country,
+            language: context.storefront.i18n.language,
+          },
+          cache: context.storefront.CacheNone(),
+        })
+      ).cart
+    : null;
+
+  return {cart};
+}
 
 export async function action({request, context}) {
   const {session, storefront} = context;
@@ -75,13 +95,11 @@ export async function action({request, context}) {
 }
 
 export default function Cart() {
-  const [root] = useMatches();
-
-  const cart = root.data?.cart;
+  const {cart} = useLoaderData();
 
   if (cart?.totalQuantity > 0)
     return (
-      <div className="w-full pb-12 grid md:grid-cols-2 md:items-start gap-8 md:gap-8 lg:gap-12">
+      <div className="w-full max-w-6xl mx-auto pb-12 grid md:grid-cols-2 md:items-start gap-8 md:gap-8 lg:gap-12">
         <div className="flex-grow md:translate-y-4">
           <CartLineItems linesObj={cart.lines} />
         </div>
@@ -109,8 +127,8 @@ export default function Cart() {
 
 /**
  * Create a cart with line(s) mutation
- * @param input CartInput https://shopify.dev/api/storefront/2022-01/input-objects/CartInput
- * @see https://shopify.dev/api/storefront/2022-01/mutations/cartcreate
+ * @param input CartInput https://shopify.dev/api/storefront/{api_version}/input-objects/CartInput
+ * @see https://shopify.dev/api/storefront/{api_version}/mutations/cartcreate
  * @returns result {cart, errors}
  * @preserve
  */
@@ -125,8 +143,8 @@ export async function cartCreate({input, storefront}) {
 /**
  * Storefront API cartLinesAdd mutation
  * @param cartId
- * @param lines [CartLineInput!]! https://shopify.dev/api/storefront/2022-01/input-objects/CartLineInput
- * @see https://shopify.dev/api/storefront/2022-01/mutations/cartLinesAdd
+ * @param lines [CartLineInput!]! https://shopify.dev/api/storefront/{api_version}/input-objects/CartLineInput
+ * @see https://shopify.dev/api/storefront/{api_version}/mutations/cartLinesAdd
  * @returns result {cart, errors}
  * @preserve
  */
@@ -139,7 +157,7 @@ export async function cartAdd({cartId, lines, storefront}) {
 }
 
 /**
- * Update a cart with lines to remove mutation
+ * Create a cart with line(s) mutation
  * @param cartId the current cart id
  * @param lineIds [ID!]! an array of cart line ids to remove
  * @see https://shopify.dev/api/storefront/2022-07/mutations/cartlinesremove
@@ -164,83 +182,83 @@ export async function cartRemove({cartId, lineIds, storefront}) {
 }
 
 /*
-  Cart Queries
-*/
+    Cart Queries
+  */
 
 const USER_ERROR_FRAGMENT = `#graphql
-  fragment ErrorFragment on CartUserError {
-    message
-    field
-    code
-  }
-`;
+    fragment ErrorFragment on CartUserError {
+      message
+      field
+      code
+    }
+  `;
 
 const LINES_CART_FRAGMENT = `#graphql
-  fragment CartLinesFragment on Cart {
-    id
-    totalQuantity
-  }
-`;
+    fragment CartLinesFragment on Cart {
+      id
+      totalQuantity
+    }
+  `;
 
-//! @see: https://shopify.dev/api/storefront/2022-01/mutations/cartcreate
+//! @see: https://shopify.dev/api/storefront/{api_version}/mutations/cartcreate
 const CREATE_CART_MUTATION = `#graphql
-  mutation ($input: CartInput!, $country: CountryCode = ZZ, $language: LanguageCode)
-  @inContext(country: $country, language: $language) {
-    cartCreate(input: $input) {
-      cart {
-        ...CartLinesFragment
-      }
-      errors: userErrors {
-        ...ErrorFragment
+    mutation ($input: CartInput!, $country: CountryCode = ZZ, $language: LanguageCode)
+    @inContext(country: $country, language: $language) {
+      cartCreate(input: $input) {
+        cart {
+          ...CartLinesFragment
+        }
+        errors: userErrors {
+          ...ErrorFragment
+        }
       }
     }
-  }
-  ${LINES_CART_FRAGMENT}
-  ${USER_ERROR_FRAGMENT}
-`;
+    ${LINES_CART_FRAGMENT}
+    ${USER_ERROR_FRAGMENT}
+  `;
 
 const ADD_LINES_MUTATION = `#graphql
-  mutation ($cartId: ID!, $lines: [CartLineInput!]!, $country: CountryCode = ZZ, $language: LanguageCode)
-  @inContext(country: $country, language: $language) {
-    cartLinesAdd(cartId: $cartId, lines: $lines) {
-      cart {
-        ...CartLinesFragment
-      }
-      errors: userErrors {
-        ...ErrorFragment
+    mutation ($cartId: ID!, $lines: [CartLineInput!]!, $country: CountryCode = ZZ, $language: LanguageCode)
+    @inContext(country: $country, language: $language) {
+      cartLinesAdd(cartId: $cartId, lines: $lines) {
+        cart {
+          ...CartLinesFragment
+        }
+        errors: userErrors {
+          ...ErrorFragment
+        }
       }
     }
-  }
-  ${LINES_CART_FRAGMENT}
-  ${USER_ERROR_FRAGMENT}
-`;
+    ${LINES_CART_FRAGMENT}
+    ${USER_ERROR_FRAGMENT}
+  `;
 
 const REMOVE_LINE_ITEMS_MUTATION = `#graphql
-  mutation ($cartId: ID!, $lineIds: [ID!]!, $language: LanguageCode, $country: CountryCode)
-  @inContext(country: $country, language: $language) {
-    cartLinesRemove(cartId: $cartId, lineIds: $lineIds) {
-      cart {
-        id
-        totalQuantity
-        lines(first: 100) {
-          edges {
-            node {
-              id
-              quantity
-              merchandise {
-                ...on ProductVariant {
-                  id
+    mutation ($cartId: ID!, $lineIds: [ID!]!, $language: LanguageCode, $country: CountryCode)
+    @inContext(country: $country, language: $language) {
+      cartLinesRemove(cartId: $cartId, lineIds: $lineIds) {
+        cart {
+          id
+          totalQuantity
+          lines(first: 100) {
+            edges {
+              node {
+                id
+                quantity
+                merchandise {
+                  ...on ProductVariant {
+                    id
+                  }
                 }
               }
             }
           }
         }
-      }
-      errors: userErrors {
-        message
-        field
-        code
+        errors: userErrors {
+          message
+          field
+          code
+        }
       }
     }
-  }
-`;
+  `;

@@ -1,4 +1,3 @@
-import {defer} from '@shopify/remix-oxygen';
 import {
   Links,
   Meta,
@@ -7,23 +6,16 @@ import {
   ScrollRestoration,
   useLoaderData,
 } from '@remix-run/react';
-
-import {ShopifyProvider} from '@shopify/storefront-kit-react';
-
-import {Layout} from '~/components';
-import styles from './styles/app.css';
+import {Seo} from '@shopify/hydrogen';
+import {defer} from '@shopify/remix-oxygen';
+import {CART_QUERY} from '~/queries/cart';
 import favicon from '../public/favicon.svg';
-
-const shopifyConfig = {
-  storefrontToken: '3b580e70970c4528da70c98e097c2fa0',
-  storeDomain: 'https://hydrogen-preview.myshopify.com',
-  storefrontApiVersion: '2023-01',
-  locale: 'en',
-};
+import {Layout} from './components/Layout';
+import tailwind from './styles/tailwind-build.css';
 
 export const links = () => {
   return [
-    {rel: 'stylesheet', href: styles},
+    {rel: 'stylesheet', href: tailwind},
     {
       rel: 'preconnect',
       href: 'https://cdn.shopify.com',
@@ -36,7 +28,7 @@ export const links = () => {
   ];
 };
 
-export const meta = (data) => ({
+export const meta = () => ({
   charset: 'utf-8',
   viewport: 'width=device-width,initial-scale=1',
 });
@@ -44,168 +36,51 @@ export const meta = (data) => ({
 export async function loader({context, request}) {
   const cartId = await context.session.get('cartId');
 
-  const [cart, layout] = await Promise.all([
-    cartId
-      ? (
-          await context.storefront.query(CART_QUERY, {
-            variables: {
-              cartId,
-              /**
-              Country and language properties are automatically injected
-              into all queries. Passing them is unnecessary unless you
-              want to override them from the following default:
-              */
-              country: context.storefront.i18n.country,
-              language: context.storefront.i18n.language,
-            },
-            cache: context.storefront.CacheNone(),
-          })
-        ).cart
-      : null,
-    await context.storefront.query(LAYOUT_QUERY),
-  ]);
-
   return defer({
-    cart,
-    layout,
+    cart: cartId ? getCart(context, cartId) : undefined,
+    layout: await context.storefront.query(LAYOUT_QUERY),
   });
+}
+
+async function getCart({storefront}, cartId) {
+  if (!storefront) {
+    throw new Error('missing storefront client in cart query');
+  }
+
+  const {cart} = await storefront.query(CART_QUERY, {
+    variables: {
+      cartId,
+      country: storefront.i18n.country,
+      language: storefront.i18n.language,
+    },
+    cache: storefront.CacheNone(),
+  });
+
+  return cart;
 }
 
 export default function App() {
   const data = useLoaderData();
-  const {name, description} = data.layout.shop;
+
+  const {name} = data.layout.shop;
 
   return (
-    <ShopifyProvider shopifyConfig={shopifyConfig}>
-      <html lang="en">
-        <head>
-          <Meta />
-          <Links />
-        </head>
-        <body>
-          <Layout description={description} title={name}>
-            <Outlet />
-          </Layout>
-          <ScrollRestoration />
-          <Scripts />
-        </body>
-      </html>
-    </ShopifyProvider>
+    <html lang="en">
+      <head>
+        <Seo />
+        <Meta />
+        <Links />
+      </head>
+      <body>
+        <Layout title={name}>
+          <Outlet />
+        </Layout>
+        <ScrollRestoration />
+        <Scripts />
+      </body>
+    </html>
   );
 }
-
-const CART_QUERY = `#graphql
-  query CartQuery($cartId: ID!) {
-    cart(id: $cartId) {
-      ...CartFragment
-    }
-  }
-
-  fragment CartFragment on Cart {
-    id
-    checkoutUrl
-    totalQuantity
-    buyerIdentity {
-      countryCode
-      customer {
-        id
-        email
-        firstName
-        lastName
-        displayName
-      }
-      email
-      phone
-    }
-    lines(first: 100) {
-      edges {
-        node {
-          id
-          quantity
-          attributes {
-            key
-            value
-          }
-          cost {
-            totalAmount {
-              amount
-              currencyCode
-            }
-            amountPerQuantity {
-              amount
-              currencyCode
-            }
-            compareAtAmountPerQuantity {
-              amount
-              currencyCode
-            }
-          }
-          merchandise {
-            ... on ProductVariant {
-              id
-              availableForSale
-              compareAtPrice {
-                ...MoneyFragment
-              }
-              price {
-                ...MoneyFragment
-              }
-              requiresShipping
-              title
-              image {
-                ...ImageFragment
-              }
-              product {
-                handle
-                title
-                id
-              }
-              selectedOptions {
-                name
-                value
-              }
-            }
-          }
-        }
-      }
-    }
-    cost {
-      subtotalAmount {
-        ...MoneyFragment
-      }
-      totalAmount {
-        ...MoneyFragment
-      }
-      totalDutyAmount {
-        ...MoneyFragment
-      }
-      totalTaxAmount {
-        ...MoneyFragment
-      }
-    }
-    note
-    attributes {
-      key
-      value
-    }
-    discountCodes {
-      code
-    }
-  }
-
-  fragment MoneyFragment on MoneyV2 {
-    currencyCode
-    amount
-  }
-
-  fragment ImageFragment on Image {
-    id
-    url
-    altText
-    width
-    height
-  }
-`;
 
 const LAYOUT_QUERY = `#graphql
   query layout {

@@ -1,6 +1,5 @@
-import {Money} from '@shopify/storefront-kit-react';
 import {Link, useFetcher} from '@remix-run/react';
-import {flattenConnection, Image} from '@shopify/storefront-kit-react';
+import {flattenConnection, Image, Money} from '@shopify/hydrogen-react';
 
 export function CartLineItems({linesObj}) {
   const lines = flattenConnection(linesObj);
