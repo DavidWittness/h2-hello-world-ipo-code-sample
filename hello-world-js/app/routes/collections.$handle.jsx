@@ -1,10 +1,10 @@
 import {useLoaderData} from '@remix-run/react';
 import {json} from '@shopify/remix-oxygen';
-import ProductGrid from '../../components/ProductGrid';
+import ProductGrid from '../components/ProductGrid';
 
 const seo = ({data}) => ({
   title: data?.collection?.title,
-  description: data?.collection?.description,
+  description: data?.collection?.description.substr(0, 154),
 });
 
 export const handle = {
@@ -35,12 +35,12 @@ export async function loader({params, context, request}) {
   });
 }
 
-export const meta = ({data}) => {
-  return {
-    title: data?.collection?.title ?? 'Collection',
-    description: data?.collection?.description,
-  };
-};
+export function meta({data}) {
+  return [
+    {title: data?.collection?.title ?? 'Collection'},
+    {description: data?.collection?.description},
+  ];
+}
 
 export default function Collection() {
   const {collection} = useLoaderData();

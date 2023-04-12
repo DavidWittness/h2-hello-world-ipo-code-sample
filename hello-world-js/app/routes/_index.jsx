@@ -1,12 +1,12 @@
-import {Link, useLoaderData} from '@remix-run/react';
+import {useLoaderData, Link} from '@remix-run/react';
 import {Image} from '@shopify/hydrogen';
 
-export const meta = () => {
-  return {
-    title: 'Hydrogen',
-    description: 'A custom storefront powered by Hydrogen',
-  };
-};
+export function meta() {
+  return [
+    {title: 'Hydrogen'},
+    {description: 'A custom storefront powered by Hydrogen'},
+  ];
+}
 
 export async function loader({context}) {
   return await context.storefront.query(COLLECTIONS_QUERY);
