@@ -2,13 +2,13 @@ import {
   Link,
   useLocation,
   useSearchParams,
-  useTransition,
+  useNavigation,
 } from '@remix-run/react';
 
 export default function ProductOptions({options, selectedVariant}) {
   const {pathname, search} = useLocation();
   const [currentSearchParams] = useSearchParams();
-  const transition = useTransition();
+  const navigation = useNavigation();
 
   const paramsWithDefaults = (() => {
     const defaultParams = new URLSearchParams(currentSearchParams);
@@ -26,10 +26,10 @@ export default function ProductOptions({options, selectedVariant}) {
     return defaultParams;
   })();
 
-  // Update the in-flight request data from the 'transition' (if available)
+  // Update the in-flight request data from the 'navigation' (if available)
   // to create an optimistic UI that selects a link before the request is completed
-  const searchParams = transition.location
-    ? new URLSearchParams(transition.location.search)
+  const searchParams = navigation.location
+    ? new URLSearchParams(navigation.location.search)
     : paramsWithDefaults;
 
   return (

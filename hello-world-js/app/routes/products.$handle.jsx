@@ -1,19 +1,20 @@
-import {useFetcher, useLoaderData, useMatches} from '@remix-run/react';
+import {useLoaderData} from '@remix-run/react';
+import {useMatches, useFetcher} from '@remix-run/react';
+
+import {json} from '@shopify/remix-oxygen';
 import {MediaFile, Money, ShopPayButton} from '@shopify/hydrogen-react';
-import {json} from 'react-router';
 import ProductOptions from '~/components/ProductOptions';
 
-export const loader = async ({params, context, request}) => {
+export async function loader({params, context, request}) {
   const {handle} = params;
   const searchParams = new URL(request.url).searchParams;
   const selectedOptions = [];
+  const storeDomain = context.storefront.getShopifyDomain();
 
   // set selected options from the query string
   searchParams.forEach((value, name) => {
     selectedOptions.push({name, value});
   });
-
-  const storeDomain = context.storefront.getShopifyDomain();
 
   const {product} = await context.storefront.query(PRODUCT_QUERY, {
     variables: {
@@ -35,7 +36,7 @@ export const loader = async ({params, context, request}) => {
     selectedVariant,
     storeDomain,
   });
-};
+}
 
 export default function ProductHandle() {
   const {product, selectedVariant, storeDomain} = useLoaderData();
@@ -152,16 +153,12 @@ function ProductGallery({media}) {
         return (
           <div
             className={`${
-              i === media.length - 1 && i % 3 === 1
-                ? 'md:col-span-2'
-                : i % 3 === 0
-                ? 'md:col-span-2'
-                : 'md:col-span-1'
+              i % 3 === 0 ? 'md:col-span-2' : 'md:col-span-1'
             } snap-center card-image bg-white aspect-square md:w-full w-[80vw] shadow-sm rounded`}
             key={data.id || data.image.id}
           >
             <MediaFile
-              tabIndex={0}
+              tabIndex="0"
               className={`w-full h-full aspect-square object-cover`}
               data={data}
               {...extraProps}
